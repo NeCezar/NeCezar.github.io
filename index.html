@@ -9,28 +9,23 @@
             font-weight: bold; text-shadow: 2px 2px 2px #000; background: rgba(0, 0, 0, 0.6);
             padding: 10px 20px; border-radius: 5px; border: 1px solid #4CAF50;
         }
-        #test-btn { position: absolute; top: 80px; right: 20px; padding: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
     <div id="money-container">
         $<span id="money-value">0</span>
     </div>
-    <button id="test-btn" onclick="document.getElementById('money-value').innerText = 'TEST OK';">Тест JS</button>
 
     <script>
-        // В samp-cef используется объект cef
-        if (typeof cef !== 'undefined') {
-            cef.on("updateMoney", function(amount) {
-                console.log("Получены деньги: " + amount);
+        // Слушаем событие из Pawn
+        cef.on("updateMoney", function(amount) {
+            console.log("Получены данные:", amount);
+            
+            // Если пришла строка, просто выводим её
+            if (amount !== undefined) {
                 document.getElementById('money-value').innerText = amount;
-            });
-        } else {
-            // Если cef не определен, попробуем глобальную функцию (для старых версий)
-            window.updateMoney = function(amount) {
-                document.getElementById('money-value').innerText = amount;
-            };
-        }
+            }
+        });
     </script>
 </body>
 </html>
