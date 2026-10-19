@@ -3,26 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        body { margin: 0; overflow: hidden; background: transparent; font-family: Arial, sans-serif; }
+        body { margin: 0; overflow: hidden; background: transparent; font-family: 'Segoe UI', sans-serif; user-select: none; }
+        
+        /* --- Счетчик денег --- */
         #money-container {
             position: absolute; top: 20px; right: 20px; color: #4CAF50; font-size: 24px;
             font-weight: bold; text-shadow: 2px 2px 2px #000; background: rgba(0, 0, 0, 0.6);
-            padding: 10px 20px; border-radius: 5px; border: 1px solid #4CAF50;
+            padding: 10px 20px; border-radius: 5px; border: 1px solid #4CAF50; display: none;
         }
+
+        /* --- Морской диалог --- */
+        :root {
+            --bg-dark: rgba(10, 26, 42, 0.95);
+            --border-glow: #00e5ff;
+            --header-bg: linear-gradient(90deg, #005c97, #363795);
+            --item-hover: rgba(0, 229, 255, 0.2);
+            --item-active: rgba(0, 229, 255, 0.4);
+            --text-main: #e0f7fa;
+            --btn-accept: #00bcd4;
+            --btn-cancel: #455a64;
+        }
+        #dialog-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.4);
+        }
+        .dialog-box {
+            width: 500px; background: var(--bg-dark); border: 1px solid var(--border-glow);
+            border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        .dialog-header {
+            background: var(--header-bg); padding: 15px 20px; color: #fff;
+            font-size: 18px; font-weight: bold; text-transform: uppercase;
+        }
+        .dialog-list { padding: 10px; max-height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
+        .list-item {
+            padding: 12px 15px; background: rgba(255, 255, 255, 0.05); color: var(--text-main);
+            border-radius: 6px; border-left: 3px solid transparent; cursor: pointer; transition: 0.2s;
+        }
+        .list-item:hover { background: var(--item-hover); border-left-color: var(--border-glow); padding-left: 20px; }
+        .list-item.active { background: var(--item-active); border-left-color: #fff; color: #fff; font-weight: bold; }
+        .dialog-footer { display: flex; justify-content: flex-end; padding: 15px 20px; gap: 10px; background: rgba(0, 0, 0, 0.2); }
+        button { padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; }
+        #btn-accept { background: var(--btn-accept); color: #000; }
+        #btn-cancel { background: var(--btn-cancel); color: var(--text-main); }
     </style>
 </head>
 <body>
+    <!-- Деньги -->
     <div id="money-container">
         $<span id="money-value">0</span>
     </div>
 
+    <!-- Диалог -->
+    <div id="dialog-overlay">
+        <div class="dialog-box">
+            <div class="dialog-header" id="dialog-title">Заголовок</div>
+            <div class="dialog-list" id="dialog-list"></div>
+            <div class="dialog-footer">
+                <button id="btn-cancel" onclick="handleCancel()">Отмена</button>
+                <button id="btn-accept" onclick="handleAccept()">Выбрать</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        let selectedIndex = -1;
+
+        // 1. Слушатель для денег
         cef.on("updateMoney", function(amount) {
-            // Приходит уже готовое число, можно сразу выводить
-            if (amount !== undefined && amount !== null) {
-                document.getElementById('money-value').innerText = amount;
-            }
+            document.getElementById('money-container').style.display = 'block';
+            document.getElementById('money-value').innerText = amount;
         });
+
+        // 2. Слушатель для диалога
+        cef.on("setupDialog", function(title, itemsString) {
+            document.getElementById('dialog-overlay').style.display = 'flex';
+            document.getElementById('dialog-title').innerText = title;
+            
+            const listContainer = document.getElementById('dialog-list');
+            listContainer.innerHTML = '';
+            
+            // Разбиваем строку по |
+            const items = itemsString.split("|"); 
+            items.forEach((itemText, index) => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerText = (index + 1) + ". " + itemText;
+                div.onclick = () => selectItem(index, div);
+                listContainer.appendChild(div);
+            });
+            selectedIndex = -1;
+        });
+
+        function selectItem(index, element) {
+            document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+            selectedIndex = index;
+        }
+
+        function handleAccept() {
+            if (selectedIndex === -1) return;
+            cef.emit("dialogResponse", 1, selectedIndex);
+            document.getElementById('dialog-overlay').style.display = 'none'; // Скрываем после выбора
+        }
+
+        function handleCancel() {
+            cef.emit("dialogResponse", 0, -1);
+            document.getElementById('dialog-overlay').style.display = 'none'; // Скрываем при отмене
+        }
     </script>
 </body>
 </html>
