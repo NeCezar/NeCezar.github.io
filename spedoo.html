@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body { 
+            background: transparent; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        /* Контейнер спидометра (в правом нижнем углу) */
+        #speedo-container {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 220px;
+            height: 220px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0; /* Скрыт по умолчанию */
+            transition: opacity 0.3s ease;
+        }
+
+        /* Круглый фон */
+        .dial {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(15, 20, 30, 0.85);
+            border: 2px solid rgba(0, 229, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 229, 255, 0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        /* Дуга RPM (тахометр) */
+        svg.rpm-arc {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform: rotate(135deg); /* Поворачиваем дугу */
+        }
+        .rpm-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 8;
+            stroke-dasharray: 377; /* Длина дуги (2*pi*r) */
+            stroke-dashoffset: 94; /* Обрезаем, чтобы был полукруг */
+        }
+        .rpm-fill {
+            fill: none;
+            stroke: #00e5ff; /* Неоновый цвет */
+            stroke-width: 8;
+            stroke-dasharray: 377;
+            stroke-dashoffset: 283; /* Начальное значение (0 RPM) */
+            transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
+            filter: drop-shadow(0 0 5px #00e5ff);
+        }
+
+        /* Центральный блок со скоростью */
+        .speed-info {
+            position: relative;
+            text-align: center;
+            z-index: 10;
+            margin-top: -10px;
+        }
+        #speed-value {
+            font-size: 64px;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px #00e5ff;
+            line-height: 1;
+        }
+        .speed-unit {
+            font-size: 14px;
+            color: #00e5ff;
+            letter-spacing: 2px;
+            font-weight: bold;
+            margin-top: -5px;
+            text-shadow: 0 0 5px #00e5ff;
+        }
+
+        /* Индикаторы (Топливо, Свет, Двигатель) */
+        .indicators {
+            position: absolute;
+            bottom: 35px;
+            display: flex;
+            gap: 15px;
+            z-index: 10;
+        }
+        .ind-icon {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.2);
+            transition: color 0.2s, text-shadow 0.2s;
+        }
+        .ind-icon.active-red { color: #ff3333; text-shadow: 0 0 10px #ff3333; }
+        .ind-icon.active-green { color: #00ff00; text-shadow: 0 0 10px #00ff00; }
+        .ind-icon.active-blue { color: #00e5ff; text-shadow: 0 0 10px #00e5ff; }
+
+        /* Полоса топлива */
+        .fuel-bar-container {
+            position: absolute;
+            bottom: 60px;
+            width: 140px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            z-index: 10;
+            border: 1px solid rgba(0, 0, 0, 0.5);
+        }
+        #fuel-bar-fill {
+            height: 100%;
+            width: 100%;
+            background: #00ff00;
+            box-shadow: 0 0 10px #00ff00;
+            transition: width 0.3s ease, background 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div id="speedo-container">
+        <div class="dial"></div>
+        
+        <!-- Тахометр -->
+        <svg class="rpm-arc" viewBox="0 0 220 220">
+            <circle class="rpm-bg" cx="110" cy="110" r="100"></circle>
+            <circle class="rpm-fill" id="rpm-circle" cx="110" cy="110" r="100"></circle>
+        </svg>
+
+        <!-- Скорость -->
+        <div class="speed-info">
+            <div id="speed-value">0</div>
+            <div class="speed-unit">KM/H</div>
+        </div>
+
+        <!-- Топливо -->
+        <div class="fuel-bar-container">
+            <div id="fuel-bar-fill"></div>
+        </div>
+
+        <!-- Индикаторы -->
+        <div class="indicators">
+            <div class="ind-icon" id="ind-engine" title="Двигатель">??</div>
+            <div class="ind-icon" id="ind-lights" title="Габариты">??</div>
+        </div>
+    </div>
+
+    <script>
+        // Слушатель событий из Pawn
+        cef.on("updateSpeedo", function(speed, fuel, engine, lights) {
+            // Показываем спидометр
+            document.getElementById('speedo-container').style.opacity = '1';
+
+            // Обновляем скорость
+            document.getElementById('speed-value').innerText = speed;
+
+            // Обновляем RPM (имитация от скорости: максимум 377 - 94 = 283 длины)
+            // Берем скорость от 0 до 200 км/ч как шкалу
+            let maxSpeed = 200;
+            let rpmPercent = Math.min(speed / maxSpeed, 1);
+            let strokeOffset = 283 - (rpmPercent * 283); 
+            let circle = document.getElementById('rpm-circle');
+            circle.style.strokeDashoffset = strokeOffset;
+
+            // Меняем цвет тахометра от скорости
+            if (rpmPercent > 0.8) circle.style.stroke = "#ff3333"; // Красная зона
+            else if (rpmPercent > 0.5) circle.style.stroke = "#ffcc00"; // Желтая зона
+            else circle.style.stroke = "#00e5ff"; // Синяя зона
+
+            // Обновляем топливо (от 0 до 100)
+            let fuelFill = document.getElementById('fuel-bar-fill');
+            fuelFill.style.width = fuel + "%";
+            if (fuel < 20) {
+                fuelFill.style.background = "#ff3333";
+                fuelFill.style.boxShadow = "0 0 10px #ff3333";
+            } else {
+                fuelFill.style.background = "#00ff00";
+                fuelFill.style.boxShadow = "0 0 10px #00ff00";
+            }
+
+            // Двигатель
+            let indEngine = document.getElementById('ind-engine');
+            if (engine == 1) indEngine.className = "ind-icon active-green";
+            else indEngine.className = "ind-icon";
+
+            // Свет
+            let indLights = document.getElementById('ind-lights');
+            if (lights == 1) indLights.className = "ind-icon active-blue";
+            else indLights.className = "ind-icon";
+        });
+
+        // Скрыть спидометр, если игрок вышел из машины
+        cef.on("hideSpeedo", function() {
+            document.getElementById('speedo-container').style.opacity = '0';
+        });
+    </script>
+</body>
+</html>
