@@ -78,14 +78,21 @@
         });
 
         // 2. Слушатель для диалога
+               // 2. Слушатель для диалога
         cef.on("setupDialog", function(title, itemsString) {
+            console.log("Получен диалог:", title, itemsString);
+            
+            // Защита от undefined
+            if (!itemsString) {
+                itemsString = "Ошибка|Нет данных";
+            }
+
             document.getElementById('dialog-overlay').style.display = 'flex';
             document.getElementById('dialog-title').innerText = title;
             
             const listContainer = document.getElementById('dialog-list');
             listContainer.innerHTML = '';
             
-            // Разбиваем строку по |
             const items = itemsString.split("|"); 
             items.forEach((itemText, index) => {
                 const div = document.createElement('div');
