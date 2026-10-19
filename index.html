@@ -17,12 +17,9 @@
     </div>
 
     <script>
-        // Слушаем событие из Pawn
         cef.on("updateMoney", function(amount) {
-            console.log("Получены данные:", amount);
-            
-            // Если пришла строка, просто выводим её
-            if (amount !== undefined) {
+            // Приходит уже готовое число, можно сразу выводить
+            if (amount !== undefined && amount !== null) {
                 document.getElementById('money-value').innerText = amount;
             }
         });
