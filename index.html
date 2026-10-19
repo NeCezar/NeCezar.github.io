@@ -6,8 +6,9 @@
         body {
             margin: 0;
             overflow: hidden;
-            background: transparent; /* Прозрачный фон */
-            font-family: Arial, sans-serif;
+            background: transparent;
+            font-family: 'Trebuchet MS', Arial, sans-serif;
+            user-select: none;
         }
         #money-container {
             position: absolute;
@@ -30,10 +31,12 @@
     </div>
 
     <script>
-        // Эта функция вызывается из Pawn через CEF_EmitEvent
-        function updateMoney(amount) {
-            document.getElementById('money-value').innerText = amount;
-        }
+        // Р’ samp-cef СЃРѕР±С‹С‚РёСЏ РїСЂРёРЅРёРјР°СЋС‚СЃСЏ С‡РµСЂРµР· РѕР±СЉРµРєС‚ cef
+        cef.on("updateMoney", function(amount) {
+            // Р¤РѕСЂРјР°С‚РёСЂСѓРµРј С‡РёСЃР»Рѕ СЃ РїСЂРѕР±РµР»Р°РјРё (РЅР°РїСЂРёРјРµСЂ, 1 000 000)
+            let formatted = amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+            document.getElementById('money-value').innerText = formatted;
+        });
     </script>
 </body>
 </html>
