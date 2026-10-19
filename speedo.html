@@ -10,7 +10,7 @@
             overflow: hidden;
         }
 
-        /* Êîíòåéíåð ñïèäîìåòðà (â ïðàâîì íèæíåì óãëó) */
+        /* Контейнер спидометра (в правом нижнем углу) */
         #speedo-container {
             position: absolute;
             bottom: 30px;
@@ -20,11 +20,11 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            opacity: 0; /* Ñêðûò ïî óìîë÷àíèþ */
+            opacity: 0; /* Скрыт по умолчанию */
             transition: opacity 0.3s ease;
         }
 
-        /* Êðóãëûé ôîí */
+        /* Круглый фон */
         .dial {
             position: absolute;
             width: 100%;
@@ -36,31 +36,31 @@
             backdrop-filter: blur(5px);
         }
 
-        /* Äóãà RPM (òàõîìåòð) */
+        /* Дуга RPM (тахометр) */
         svg.rpm-arc {
             position: absolute;
             width: 100%;
             height: 100%;
-            transform: rotate(135deg); /* Ïîâîðà÷èâàåì äóãó */
+            transform: rotate(135deg); /* Поворачиваем дугу */
         }
         .rpm-bg {
             fill: none;
             stroke: rgba(255, 255, 255, 0.1);
             stroke-width: 8;
-            stroke-dasharray: 377; /* Äëèíà äóãè (2*pi*r) */
-            stroke-dashoffset: 94; /* Îáðåçàåì, ÷òîáû áûë ïîëóêðóã */
+            stroke-dasharray: 377; /* Длина дуги (2*pi*r) */
+            stroke-dashoffset: 94; /* Обрезаем, чтобы был полукруг */
         }
         .rpm-fill {
             fill: none;
-            stroke: #00e5ff; /* Íåîíîâûé öâåò */
+            stroke: #00e5ff; /* Неоновый цвет */
             stroke-width: 8;
             stroke-dasharray: 377;
-            stroke-dashoffset: 283; /* Íà÷àëüíîå çíà÷åíèå (0 RPM) */
+            stroke-dashoffset: 283; /* Начальное значение (0 RPM) */
             transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
             filter: drop-shadow(0 0 5px #00e5ff);
         }
 
-        /* Öåíòðàëüíûé áëîê ñî ñêîðîñòüþ */
+        /* Центральный блок со скоростью */
         .speed-info {
             position: relative;
             text-align: center;
@@ -83,7 +83,7 @@
             text-shadow: 0 0 5px #00e5ff;
         }
 
-        /* Èíäèêàòîðû (Òîïëèâî, Ñâåò, Äâèãàòåëü) */
+        /* Индикаторы (Топливо, Свет, Двигатель) */
         .indicators {
             position: absolute;
             bottom: 35px;
@@ -100,7 +100,7 @@
         .ind-icon.active-green { color: #00ff00; text-shadow: 0 0 10px #00ff00; }
         .ind-icon.active-blue { color: #00e5ff; text-shadow: 0 0 10px #00e5ff; }
 
-        /* Ïîëîñà òîïëèâà */
+        /* Полоса топлива */
         .fuel-bar-container {
             position: absolute;
             bottom: 60px;
@@ -125,53 +125,53 @@
     <div id="speedo-container">
         <div class="dial"></div>
         
-        <!-- Òàõîìåòð -->
+        <!-- Тахометр -->
         <svg class="rpm-arc" viewBox="0 0 220 220">
             <circle class="rpm-bg" cx="110" cy="110" r="100"></circle>
             <circle class="rpm-fill" id="rpm-circle" cx="110" cy="110" r="100"></circle>
         </svg>
 
-        <!-- Ñêîðîñòü -->
+        <!-- Скорость -->
         <div class="speed-info">
             <div id="speed-value">0</div>
             <div class="speed-unit">KM/H</div>
         </div>
 
-        <!-- Òîïëèâî -->
+        <!-- Топливо -->
         <div class="fuel-bar-container">
             <div id="fuel-bar-fill"></div>
         </div>
 
-        <!-- Èíäèêàòîðû -->
+        <!-- Индикаторы -->
         <div class="indicators">
-            <div class="ind-icon" id="ind-engine" title="Äâèãàòåëü">??</div>
-            <div class="ind-icon" id="ind-lights" title="Ãàáàðèòû">??</div>
+            <div class="ind-icon" id="ind-engine" title="Двигатель">??</div>
+            <div class="ind-icon" id="ind-lights" title="Габариты">??</div>
         </div>
     </div>
 
     <script>
-        // Ñëóøàòåëü ñîáûòèé èç Pawn
+        // Слушатель событий из Pawn
         cef.on("updateSpeedo", function(speed, fuel, engine, lights) {
-            // Ïîêàçûâàåì ñïèäîìåòð
+            // Показываем спидометр
             document.getElementById('speedo-container').style.opacity = '1';
 
-            // Îáíîâëÿåì ñêîðîñòü
+            // Обновляем скорость
             document.getElementById('speed-value').innerText = speed;
 
-            // Îáíîâëÿåì RPM (èìèòàöèÿ îò ñêîðîñòè: ìàêñèìóì 377 - 94 = 283 äëèíû)
-            // Áåðåì ñêîðîñòü îò 0 äî 200 êì/÷ êàê øêàëó
+            // Обновляем RPM (имитация от скорости: максимум 377 - 94 = 283 длины)
+            // Берем скорость от 0 до 200 км/ч как шкалу
             let maxSpeed = 200;
             let rpmPercent = Math.min(speed / maxSpeed, 1);
             let strokeOffset = 283 - (rpmPercent * 283); 
             let circle = document.getElementById('rpm-circle');
             circle.style.strokeDashoffset = strokeOffset;
 
-            // Ìåíÿåì öâåò òàõîìåòðà îò ñêîðîñòè
-            if (rpmPercent > 0.8) circle.style.stroke = "#ff3333"; // Êðàñíàÿ çîíà
-            else if (rpmPercent > 0.5) circle.style.stroke = "#ffcc00"; // Æåëòàÿ çîíà
-            else circle.style.stroke = "#00e5ff"; // Ñèíÿÿ çîíà
+            // Меняем цвет тахометра от скорости
+            if (rpmPercent > 0.8) circle.style.stroke = "#ff3333"; // Красная зона
+            else if (rpmPercent > 0.5) circle.style.stroke = "#ffcc00"; // Желтая зона
+            else circle.style.stroke = "#00e5ff"; // Синяя зона
 
-            // Îáíîâëÿåì òîïëèâî (îò 0 äî 100)
+            // Обновляем топливо (от 0 до 100)
             let fuelFill = document.getElementById('fuel-bar-fill');
             fuelFill.style.width = fuel + "%";
             if (fuel < 20) {
@@ -182,18 +182,18 @@
                 fuelFill.style.boxShadow = "0 0 10px #00ff00";
             }
 
-            // Äâèãàòåëü
+            // Двигатель
             let indEngine = document.getElementById('ind-engine');
             if (engine == 1) indEngine.className = "ind-icon active-green";
             else indEngine.className = "ind-icon";
 
-            // Ñâåò
+            // Свет
             let indLights = document.getElementById('ind-lights');
             if (lights == 1) indLights.className = "ind-icon active-blue";
             else indLights.className = "ind-icon";
         });
 
-        // Ñêðûòü ñïèäîìåòð, åñëè èãðîê âûøåë èç ìàøèíû
+        // Скрыть спидометр, если игрок вышел из машины
         cef.on("hideSpeedo", function() {
             document.getElementById('speedo-container').style.opacity = '0';
         });
