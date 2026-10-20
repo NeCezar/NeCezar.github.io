@@ -20,13 +20,48 @@ body{font-family:"Segoe UI",Arial,sans-serif;color:var(--white);user-select:none
 .input-wrap{display:none;margin-top:8px}.input-wrap.active{display:flex}
 #chat-input{width:100%;border:1px solid var(--edge);border-radius:7px;padding:8px 10px;background:rgba(0,28,46,.8);color:white;outline:none;font:inherit}
 
-/* ===== ДЕНЬГИ ===== */
-.right{position:absolute;top:2.7%;right:2%;width:min(19vw,292px);min-width:230px}
-.money{display:flex;align-items:center;justify-content:flex-start;gap:9px;margin:0 4px 7px;padding:6px 16px;font-size:clamp(18px,1.65vw,25px);font-weight:850;letter-spacing:.6px;color:#eefaff;background:linear-gradient(135deg,rgba(4,43,70,.78),rgba(9,74,105,.55));border:1px solid rgba(65,211,247,.55);border-radius:8px;clip-path:polygon(5% 0,100% 0,95% 100%,0 100%);text-shadow:0 2px 0 #07536a;box-shadow:0 0 14px rgba(53,212,242,.22),inset 0 1px 0 rgba(255,255,255,.10)}
+/* ===== ПРАВЫЙ БЛОК: ПАРАЛЛЕЛОГРАММ (деньги сверху темнее + разделитель + статы) ===== */
+.right{
+  position:absolute;top:2.7%;right:2%;
+  width:min(19vw,292px);min-width:230px;
+  --money-h:42px;                 /* высота секции денег — граница разреза градиента */
+  filter:drop-shadow(0 0 14px rgba(53,212,242,.22));
+}
+/* Внешняя циановая рамка-параллелограмм */
+.right::before{
+  content:'';position:absolute;inset:0;z-index:0;
+  background:rgba(65,211,247,.55);
+  clip-path:polygon(20px 0, 100% 0, calc(100% - 20px) 100%, 0 100%);
+}
+/* Внутренняя заливка-параллелограмм с РАЗДЕЛОМ: верх тёмнее, 1px циановая линия, низ — обычный */
+.right::after{
+  content:'';position:absolute;inset:0;z-index:1;
+  background:linear-gradient(180deg,
+    rgba(2,20,36,.94) 0,
+    rgba(2,20,36,.94) calc(var(--money-h) - 1px),
+    rgba(53,212,242,.60) calc(var(--money-h) - 1px),   /* разделитель */
+    rgba(53,212,242,.60) var(--money-h),
+    rgba(4,43,70,.78) var(--money-h),
+    rgba(9,74,105,.55) 100%
+  );
+  clip-path:polygon(21px 1px, calc(100% - 1px) 1px, calc(100% - 21px) calc(100% - 1px), 1px calc(100% - 1px));
+  backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+}
+.right > *{position:relative;z-index:2}
+
+/* Деньги — отдельная секция сверху, высота фиксирована под разрез градиента */
+.money{
+  display:flex;align-items:center;justify-content:flex-start;gap:9px;
+  height:var(--money-h);
+  padding:0 20px 0 26px;
+  margin:0;
+  font-size:clamp(18px,1.65vw,25px);font-weight:850;letter-spacing:.6px;color:#eefaff;
+  text-shadow:0 2px 0 #07536a;
+}
 .ruble{display:inline-flex;align-items:center;justify-content:center;font-size:1.2em;font-weight:900;line-height:1;color:#7ff0ff;text-shadow:0 0 10px rgba(53,212,242,.9),0 1px 0 #07536a;margin-right:1px}
 
-/* ===== СТАТЫ ===== */
-.stats{padding:8px 10px 6px 38px;border-radius:11px}
+/* Статы — нижняя секция */
+.stats{padding:10px 22px 10px 38px}
 .stat{display:grid;grid-template-columns:22px minmax(58px,1fr) 24px;align-items:center;gap:7px;margin:3px 0 7px}
 .stat:last-child{margin-bottom:0}
 .icon{font-size:17px;text-align:center;line-height:1;filter:brightness(0) invert(0.82) sepia(1) saturate(4) hue-rotate(150deg) brightness(1.15)}
@@ -35,11 +70,11 @@ body{font-family:"Segoe UI",Arial,sans-serif;color:var(--white);user-select:none
 .health{background:linear-gradient(90deg,#b5dce9,#e4f7ff)}.hunger{background:linear-gradient(90deg,#b5dce9,#e4f7ff)}
 .value{text-align:right;font-size:11px;font-weight:750;color:#effaff}
 
-/* ===== ЛОГО: правый нижний угол ===== */
+/* ===== ЛОГО ===== */
 .brand{position:absolute;right:2%;bottom:2%;display:block}
 .logo{width:clamp(140px,12.5vw,190px);height:auto;display:block;filter:drop-shadow(0 3px 8px rgba(0,25,45,.25))}
 
-/* ===== ID: сдвинут правее — под мини-карту ===== */
+/* ===== ID ===== */
 .player{position:absolute;left:10%;bottom:2%;display:flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid rgba(65,207,245,.38);border-radius:7px;background:rgba(4,43,70,.45);font-size:11px;color:#d4f3fc}
 .player-icon{width:18px;height:18px;display:grid;place-items:center;border-radius:50%;border:1px solid rgba(180,234,249,.6);color:#e7f6fc;font-size:10px}
 .player strong{color:white}
@@ -47,8 +82,9 @@ body{font-family:"Segoe UI",Arial,sans-serif;color:var(--white);user-select:none
 @media(max-width:700px){
   .chat{min-width:0;width:64vw;padding:9px}
   #chat-messages{min-height:174px;max-height:40vh}
-  .right{min-width:0;width:34vw;right:2%}
-  .stats{padding:7px 7px 7px 30px}
+  .right{min-width:0;width:34vw;right:2%;--money-h:36px}
+  .money{padding:0 16px 0 22px}
+  .stats{padding:7px 16px 7px 30px}
   .stat{grid-template-columns:18px minmax(40px,1fr) 22px;gap:5px}
   .value{font-size:10px}
   .brand{right:1.5%;bottom:1.5%}
@@ -66,8 +102,7 @@ body{font-family:"Segoe UI",Arial,sans-serif;color:var(--white);user-select:none
 
   <aside class="right">
     <div class="money"><span class="ruble">₽</span><span id="money">000000</span></div>
-
-    <div class="stats panel">
+    <div class="stats">
       <div class="stat"><span class="icon">♥</span><div class="bar"><div class="fill health" id="health-fill" style="width:100%"></div></div><span class="value" id="health-value">100</span></div>
       <div class="stat"><span class="icon">🍗</span><div class="bar"><div class="fill hunger" id="hunger-fill" style="width:78%"></div></div><span class="value" id="hunger-value">78</span></div>
     </div>
