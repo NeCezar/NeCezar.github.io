@@ -43,20 +43,20 @@ body{font-family:"Segoe UI",Arial,sans-serif;color:var(--white);user-select:none
 <body>
 <div class="hud">
   <section class="chat panel">
-    <div class="heading"><span class="chat-icon">вЂўвЂўвЂў</span><span>Р§Р°С‚</span><span class="line"></span></div>
+    <div class="heading"><span class="chat-icon">•••</span><span>Чат</span><span class="line"></span></div>
     <div id="chat-messages" aria-live="polite"></div>
-    <div class="input-wrap" id="input-wrap"><input id="chat-input" placeholder="Р’РІРµРґРёС‚Рµ СЃРѕРѕР±С‰РµРЅРёРµ..." maxlength="180"></div>
+    <div class="input-wrap" id="input-wrap"><input id="chat-input" placeholder="Введите сообщение..." maxlength="180"></div>
   </section>
   <aside class="right">
-    <div class="money"><span class="ruble">в‚Ѕ</span><span id="money">000000</span></div>
+    <div class="money"><span class="ruble">₽</span><span id="money">000000</span></div>
     <div class="stats panel">
-      <div class="stat"><span class="icon">в™Ґ</span><span class="label">Р—РґРѕСЂРѕРІСЊРµ</span><div class="bar"><div class="fill health" id="health-fill" style="width:100%"></div></div><span class="value" id="health-value">100</span></div>
-      <div class="stat"><span class="icon">рџЌ—</span><span class="label">Р“РѕР»РѕРґ</span><div class="bar"><div class="fill hunger" id="hunger-fill" style="width:78%"></div></div><span class="value" id="hunger-value">78</span></div>
+      <div class="stat"><span class="icon">♥</span><span class="label">Здоровье</span><div class="bar"><div class="fill health" id="health-fill" style="width:100%"></div></div><span class="value" id="health-value">100</span></div>
+      <div class="stat"><span class="icon">🍗</span><span class="label">Голод</span><div class="bar"><div class="fill hunger" id="hunger-fill" style="width:78%"></div></div><span class="value" id="hunger-value">78</span></div>
     </div>
   </aside>
   <section class="brand">
     <img class="logo" src="assets/waterfall-logo.png" alt="WaterFall RolePlay">
-    <div class="player"><span class="player-icon">в—Џ</span><span>ID РёРіСЂРѕРєР°: <strong id="player-id">123</strong></span></div>
+    <div class="player"><span class="player-icon">●</span><span>ID игрока: <strong id="player-id">123</strong></span></div>
   </section>
 </div>
 <script>
@@ -70,7 +70,7 @@ function addChatMessage(text,type=''){const row=document.createElement('div');ro
 let chatOpen=false;
 function toggleChat(force){chatOpen=typeof force==='boolean'?force:!chatOpen;$('input-wrap').classList.toggle('active',chatOpen);if(chatOpen)$('chat-input').focus();else $('chat-input').blur()}
 document.addEventListener('keydown',e=>{if(e.key==='F2'){e.preventDefault();toggleChat()}if(e.key==='Escape'&&chatOpen)toggleChat(false)});
-$('chat-input').addEventListener('keydown',e=>{if(e.key==='Enter'){const t=e.target.value.trim();if(t)addChatMessage('Р’С‹: '+t);e.target.value='';toggleChat(false)}});
+$('chat-input').addEventListener('keydown',e=>{if(e.key==='Enter'){const t=e.target.value.trim();if(t)addChatMessage('Вы: '+t);e.target.value='';toggleChat(false)}});
 window.setHealth=setHealth;window.setHunger=setHunger;window.setMoney=setMoney;window.setPlayerId=setPlayerId;window.addChatMessage=addChatMessage;window.toggleChat=toggleChat;
 </script>
 </body>
