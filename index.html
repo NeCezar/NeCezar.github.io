@@ -1,127 +1,77 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <style>
-        body { margin: 0; overflow: hidden; background: transparent; font-family: 'Segoe UI', sans-serif; user-select: none; }
-        
-        /* --- Счетчик денег --- */
-        #money-container {
-            position: absolute; top: 20px; right: 20px; color: #4CAF50; font-size: 24px;
-            font-weight: bold; text-shadow: 2px 2px 2px #000; background: rgba(0, 0, 0, 0.6);
-            padding: 10px 20px; border-radius: 5px; border: 1px solid #4CAF50; display: none;
-        }
-
-        /* --- Морской диалог --- */
-        :root {
-            --bg-dark: rgba(10, 26, 42, 0.95);
-            --border-glow: #00e5ff;
-            --header-bg: linear-gradient(90deg, #005c97, #363795);
-            --item-hover: rgba(0, 229, 255, 0.2);
-            --item-active: rgba(0, 229, 255, 0.4);
-            --text-main: #e0f7fa;
-            --btn-accept: #00bcd4;
-            --btn-cancel: #455a64;
-        }
-        #dialog-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: none; justify-content: center; align-items: center;
-            background: rgba(0,0,0,0.4);
-        }
-        .dialog-box {
-            width: 500px; background: var(--bg-dark); border: 1px solid var(--border-glow);
-            border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-            display: flex; flex-direction: column; overflow: hidden;
-        }
-        .dialog-header {
-            background: var(--header-bg); padding: 15px 20px; color: #fff;
-            font-size: 18px; font-weight: bold; text-transform: uppercase;
-        }
-        .dialog-list { padding: 10px; max-height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
-        .list-item {
-            padding: 12px 15px; background: rgba(255, 255, 255, 0.05); color: var(--text-main);
-            border-radius: 6px; border-left: 3px solid transparent; cursor: pointer; transition: 0.2s;
-        }
-        .list-item:hover { background: var(--item-hover); border-left-color: var(--border-glow); padding-left: 20px; }
-        .list-item.active { background: var(--item-active); border-left-color: #fff; color: #fff; font-weight: bold; }
-        .dialog-footer { display: flex; justify-content: flex-end; padding: 15px 20px; gap: 10px; background: rgba(0, 0, 0, 0.2); }
-        button { padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; }
-        #btn-accept { background: var(--btn-accept); color: #000; }
-        #btn-cancel { background: var(--btn-cancel); color: var(--text-main); }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WaterFall RolePlay | CEF HUD</title>
+<style>
+:root{--cyan:#35d4f2;--white:#f1faff;--glass:rgba(4,43,70,.56);--edge:rgba(70,210,246,.65)}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}
+body{font-family:"Segoe UI",Arial,sans-serif;color:var(--white);user-select:none}
+.hud{position:relative;width:100vw;height:100vh;pointer-events:none}
+.panel{background:var(--glass);border:1px solid var(--edge);box-shadow:0 8px 24px rgba(0,25,45,.12),inset 0 1px 0 rgba(255,255,255,.08);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+.chat{position:absolute;left:2%;top:2.6%;width:min(41vw,650px);min-width:300px;padding:12px 16px 10px;border-radius:14px;background:rgba(4,43,70,.28);pointer-events:auto}
+.heading{display:flex;align-items:center;gap:10px;color:#bfefff;font-size:21px;font-weight:750}
+.chat-icon{width:22px;height:18px;border:2px solid #bfefff;border-radius:5px;display:grid;place-items:center;font-size:10px}
+.line{height:1px;flex:1;background:linear-gradient(90deg,var(--cyan),transparent)}
+#chat-messages{min-height:105px;max-height:23vh;overflow:hidden;margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.message{font-size:clamp(12px,1vw,15px);line-height:1.3;color:#effaff;text-shadow:0 1px 2px rgba(0,20,35,.7);overflow-wrap:anywhere}
+.time{color:#b8efff;margin-right:7px}.tag{font-weight:700}.tag.vip{color:#f4dba0}.tag.admin{color:#f0b5bf}.tag.radio{color:#b3f0d8}
+.input-wrap{display:none;margin-top:8px}.input-wrap.active{display:flex}
+#chat-input{width:100%;border:1px solid var(--edge);border-radius:7px;padding:8px 10px;background:rgba(0,28,46,.8);color:white;outline:none;font:inherit}
+.right{position:absolute;top:2.7%;right:2%;width:min(19vw,292px);min-width:230px}
+.money{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:0 4px 7px;padding:5px 11px;font-size:clamp(18px,1.65vw,25px);font-weight:850;letter-spacing:.5px;color:#eefaff;background:rgba(4,43,70,.60);border:1px solid rgba(65,211,247,.42);border-radius:8px;clip-path:polygon(5% 0,100% 0,95% 100%,0 100%);text-shadow:0 2px 0 #07536a}
+.ruble{display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:rgba(90,199,235,.18);border:1px solid rgba(166,233,255,.6);font-size:16px;color:#eafaff}
+.stats{padding:8px 10px 6px;border-radius:11px}
+.stat{display:grid;grid-template-columns:21px 1fr minmax(58px,1.05fr) 22px;align-items:center;gap:6px;margin:3px 0 7px}
+.stat:last-child{margin-bottom:0}
+.icon{font-size:17px;color:#dcecf3;filter:grayscale(1);opacity:.82;text-align:center}
+.label{font-size:12px;color:#e8f5fb;font-weight:650;white-space:nowrap}
+.bar{height:10px;border-radius:99px;padding:1px;background:rgba(0,22,39,.62);border:1px solid rgba(165,225,241,.28);overflow:hidden}
+.fill{height:100%;border-radius:99px;transition:width .2s ease}
+.health{background:linear-gradient(90deg,#b5dce9,#e4f7ff)}.hunger{background:linear-gradient(90deg,#b5dce9,#e4f7ff)}
+.value{text-align:right;font-size:11px;font-weight:750;color:#effaff}
+.brand{position:absolute;left:1.6%;bottom:2%;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.logo{width:clamp(140px,12.5vw,190px);height:auto;display:block;filter:drop-shadow(0 3px 8px rgba(0,25,45,.25))}
+.player{display:flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid rgba(65,207,245,.38);border-radius:7px;background:rgba(4,43,70,.45);font-size:11px;color:#d4f3fc}
+.player-icon{width:18px;height:18px;display:grid;place-items:center;border-radius:50%;border:1px solid rgba(180,234,249,.6);color:#e7f6fc;font-size:10px}
+.player strong{color:white}
+@media(max-width:700px){.chat{min-width:0;width:58vw;padding:9px}.right{min-width:0;width:34vw;right:2%}.stats{padding:7px}.stat{grid-template-columns:18px 1fr;gap:4px}.stat .bar,.stat .value{grid-column:2}.label{font-size:10px}.brand{left:1.5%;bottom:1.5%}.logo{width:clamp(110px,20vw,150px)}}
+</style>
 </head>
 <body>
-    <!-- Деньги -->
-    <div id="money-container">
-        $<span id="money-value">0</span>
+<div class="hud">
+  <section class="chat panel">
+    <div class="heading"><span class="chat-icon">вЂўвЂўвЂў</span><span>Р§Р°С‚</span><span class="line"></span></div>
+    <div id="chat-messages" aria-live="polite"></div>
+    <div class="input-wrap" id="input-wrap"><input id="chat-input" placeholder="Р’РІРµРґРёС‚Рµ СЃРѕРѕР±С‰РµРЅРёРµ..." maxlength="180"></div>
+  </section>
+  <aside class="right">
+    <div class="money"><span class="ruble">в‚Ѕ</span><span id="money">000000</span></div>
+    <div class="stats panel">
+      <div class="stat"><span class="icon">в™Ґ</span><span class="label">Р—РґРѕСЂРѕРІСЊРµ</span><div class="bar"><div class="fill health" id="health-fill" style="width:100%"></div></div><span class="value" id="health-value">100</span></div>
+      <div class="stat"><span class="icon">рџЌ—</span><span class="label">Р“РѕР»РѕРґ</span><div class="bar"><div class="fill hunger" id="hunger-fill" style="width:78%"></div></div><span class="value" id="hunger-value">78</span></div>
     </div>
-
-    <!-- Диалог -->
-    <div id="dialog-overlay">
-        <div class="dialog-box">
-            <div class="dialog-header" id="dialog-title">Заголовок</div>
-            <div class="dialog-list" id="dialog-list"></div>
-            <div class="dialog-footer">
-                <button id="btn-cancel" onclick="handleCancel()">Отмена</button>
-                <button id="btn-accept" onclick="handleAccept()">Выбрать</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let selectedIndex = -1;
-
-        // 1. Слушатель для денег
-        cef.on("updateMoney", function(amount) {
-            document.getElementById('money-container').style.display = 'block';
-            document.getElementById('money-value').innerText = amount;
-        });
-
-        // 2. Слушатель для диалога
-               // 2. Слушатель для диалога
-        cef.on("setupDialog", function(title, itemsString) {
-            console.log("Получен диалог:", title, itemsString);
-            
-            // Защита от undefined
-            if (!itemsString) {
-                itemsString = "Ошибка|Нет данных";
-            }
-
-            document.getElementById('dialog-overlay').style.display = 'flex';
-            document.getElementById('dialog-title').innerText = title;
-            
-            const listContainer = document.getElementById('dialog-list');
-            listContainer.innerHTML = '';
-            
-            const items = itemsString.split("|"); 
-            items.forEach((itemText, index) => {
-                const div = document.createElement('div');
-                div.className = 'list-item';
-                div.innerText = (index + 1) + ". " + itemText;
-                div.onclick = () => selectItem(index, div);
-                listContainer.appendChild(div);
-            });
-            selectedIndex = -1;
-        });
-
-        function selectItem(index, element) {
-            document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active'));
-            element.classList.add('active');
-            selectedIndex = index;
-        }
-
-        function handleAccept() {
-            if (selectedIndex === -1) return;
-            cef.emit("dialogResponse", 1, selectedIndex);
-            document.getElementById('dialog-overlay').style.display = 'none'; // Скрываем после выбора
-        }
-
-        function handleCancel() {
-            cef.emit("dialogResponse", 0, -1);
-            document.getElementById('dialog-overlay').style.display = 'none'; // Скрываем при отмене
-        }
-    </script>
+  </aside>
+  <section class="brand">
+    <img class="logo" src="assets/waterfall-logo.png" alt="WaterFall RolePlay">
+    <div class="player"><span class="player-icon">в—Џ</span><span>ID РёРіСЂРѕРєР°: <strong id="player-id">123</strong></span></div>
+  </section>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+function setBar(name,value){const n=Math.max(0,Math.min(100,Number(value)||0));$(`${name}-fill`).style.width=n+'%';$(`${name}-value`).textContent=Math.round(n)}
+function setHealth(v){setBar('health',v)}
+function setHunger(v){setBar('hunger',v)}
+function setMoney(value){const n=Math.max(0,Math.floor(Number(value)||0));$('money').textContent=n.toLocaleString('ru-RU').replace(/\s/g,' ').padStart(6,'0')}
+function setPlayerId(value){$('player-id').textContent=String(value)}
+function addChatMessage(text,type=''){const row=document.createElement('div');row.className='message';const time=document.createElement('span');time.className='time';time.textContent='['+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+'] ';row.appendChild(time);const content=document.createElement('span');if(type)content.className='tag '+type;content.textContent=String(text);row.appendChild(content);$('chat-messages').appendChild(row);while($('chat-messages').children.length>8)$('chat-messages').firstElementChild.remove()}
+let chatOpen=false;
+function toggleChat(force){chatOpen=typeof force==='boolean'?force:!chatOpen;$('input-wrap').classList.toggle('active',chatOpen);if(chatOpen)$('chat-input').focus();else $('chat-input').blur()}
+document.addEventListener('keydown',e=>{if(e.key==='F2'){e.preventDefault();toggleChat()}if(e.key==='Escape'&&chatOpen)toggleChat(false)});
+$('chat-input').addEventListener('keydown',e=>{if(e.key==='Enter'){const t=e.target.value.trim();if(t)addChatMessage('Р’С‹: '+t);e.target.value='';toggleChat(false)}});
+window.setHealth=setHealth;window.setHunger=setHunger;window.setMoney=setMoney;window.setPlayerId=setPlayerId;window.addChatMessage=addChatMessage;window.toggleChat=toggleChat;
+</script>
 </body>
 </html>
-
-
