@@ -133,19 +133,99 @@ body{font-family:"Segoe UI",Arial,sans-serif;color:var(--white);user-select:none
 
   <div class="player"><span class="player-icon">●</span><span>ID игрока: <strong id="player-id">123</strong></span></div>
 </div>
+
+<!-- ЕДИНЫЙ СКРИПТ (внутри body, без дублей) -->
 <script>
-const $=id=>document.getElementById(id);
-function setBar(name,value){const n=Math.max(0,Math.min(100,Number(value)||0));$(`${name}-fill`).style.width=n+'%';$(`${name}-value`).textContent=Math.round(n)}
-function setHealth(v){setBar('health',v)}
-function setHunger(v){setBar('hunger',v)}
-function setMoney(value){const n=Math.max(0,Math.floor(Number(value)||0));$('money').textContent=n.toLocaleString('ru-RU').replace(/\s/g,' ').padStart(6,'0')}
-function setPlayerId(value){$('player-id').textContent=String(value)}
-function addChatMessage(text,type=''){const row=document.createElement('div');row.className='message';const time=document.createElement('span');time.className='time';time.textContent='['+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+'] ';row.appendChild(time);const content=document.createElement('span');if(type)content.className='tag '+type;content.textContent=String(text);row.appendChild(content);$('chat-messages').appendChild(row);while($('chat-messages').children.length>8)$('chat-messages').firstElementChild.remove()}
-let chatOpen=false;
-function toggleChat(force){chatOpen=typeof force==='boolean'?force:!chatOpen;$('input-wrap').classList.toggle('active',chatOpen);if(chatOpen)$('chat-input').focus();else $('chat-input').blur()}
-document.addEventListener('keydown',e=>{if(e.key==='F2'){e.preventDefault();toggleChat()}if(e.key==='Escape'&&chatOpen)toggleChat(false)});
-$('chat-input').addEventListener('keydown',e=>{if(e.key==='Enter'){const t=e.target.value.trim();if(t)addChatMessage('Вы: '+t);e.target.value='';toggleChat(false)}});
-window.setHealth=setHealth;window.setHunger=setHunger;window.setMoney=setMoney;window.setPlayerId=setPlayerId;window.addChatMessage=addChatMessage;window.toggleChat=toggleChat;
+  const $ = id => document.getElementById(id);
+
+  // Функции обновления интерфейса
+  function setBar(name, value) {
+      const n = Math.max(0, Math.min(100, Number(value) || 0));
+      $(`${name}-fill`).style.width = n + '%';
+      $(`${name}-value`).textContent = Math.round(n);
+  }
+  
+  function setHealth(v) { setBar('health', v); }
+  function setHunger(v) { setBar('hunger', v); }
+  
+  function setMoney(value) {
+      const n = Math.max(0, Math.floor(Number(value) || 0));
+      $('money').textContent = n.toLocaleString('ru-RU').replace(/\s/g, ' ').padStart(6, '0');
+  }
+  
+  function setPlayerId(value) { $('player-id').textContent = String(value); }
+
+  // Функции чата
+  function addChatMessage(text, type = '') {
+      const row = document.createElement('div');
+      row.className = 'message';
+      const time = document.createElement('span');
+      time.className = 'time';
+      time.textContent = '[' + new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) + '] ';
+      row.appendChild(time);
+      
+      const content = document.createElement('span');
+      if (type) content.className = 'tag ' + type;
+      content.textContent = String(text);
+      row.appendChild(content);
+      $('chat-messages').appendChild(row);
+      
+      while ($('chat-messages').children.length > 8) {
+          $('chat-messages').firstElementChild.remove();
+      }
+  }
+
+  let chatOpen = false;
+  function toggleChat(force) {
+      chatOpen = typeof force === 'boolean' ? force : !chatOpen;
+      $('input-wrap').classList.toggle('active', chatOpen);
+      if (chatOpen) $('chat-input').focus();
+      else $('chat-input').blur();
+  }
+
+  // Обработка клавиш
+  document.addEventListener('keydown', e => {
+      if (e.key === 'F2') { e.preventDefault(); toggleChat(); }
+      if (e.key === 'Escape' && chatOpen) toggleChat(false);
+  });
+
+  $('chat-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+          const t = e.target.value.trim();
+          if (t) addChatMessage('Вы: ' + t);
+          e.target.value = '';
+          toggleChat(false);
+      }
+  });
+
+  // Экспорт в window (чтобы можно было тестировать в браузере через консоль)
+  window.setHealth = setHealth;
+  window.setHunger = setHunger;
+  window.setMoney = setMoney;
+  window.setPlayerId = setPlayerId;
+  window.addChatMessage = addChatMessage;
+  window.toggleChat = toggleChat;
+
+  // === БЛОК ИНТЕГРАЦИИ С CEF ===
+  if (typeof cef !== 'undefined' && cef.on) {
+      // Привязка событий из Pawn
+      cef.on('updateMoney', (money) => setMoney(money));
+      cef.on('updateHealth', (health) => setHealth(health));
+      cef.on('updateHunger', (hunger) => setHunger(hunger));
+      cef.on('updateId', (id) => setPlayerId(id));
+      cef.on('addChat', (text) => addChatMessage(text));
+      
+      // Даем браузеру 100мс на инициализацию, после чего сообщаем серверу, что мы готовы
+      setTimeout(() => {
+          if (cef.emit) {
+              cef.emit('cefReady', '');
+              console.log('CEF: Отправлен сигнал готовности cefReady');
+          }
+      }, 100);
+  } else {
+      // Режим тестирования в обычном браузере
+      console.log('CEF не обнаружен. Режим локального тестирования HUD.');
+  }
 </script>
 </body>
 </html>
