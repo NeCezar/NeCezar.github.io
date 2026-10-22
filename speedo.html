@@ -167,8 +167,6 @@ window.addEventListener('resize',fit); fit();
 
 /* ---- привязка к SAMP CEF (zottce samp-cef) ---- */
 if(window.cef && typeof cef.on==='function'){
- cef.on('showSpeedo', function(){ show(); });
- cef.on('hideSpeedo', function(){ hide(); });
   cef.on('updateSpeedo', function(speed,fuel,engine,lights){
     if(typeof speed==='string'){ // страховка, если пришла строка "s f e l"
       var p=speed.split(/\s+/);
@@ -176,7 +174,7 @@ if(window.cef && typeof cef.on==='function'){
     }
     update(speed,fuel,engine,lights);
   });
-  cef.on('hideSpeedo', function(){ hide(); });
+  cef.on('showSpeedo', function(){ show(); });
 }else{
   /* демо-режим: открыть файл в обычном браузере для проверки */
   var t=0;
