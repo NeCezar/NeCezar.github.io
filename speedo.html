@@ -175,6 +175,7 @@ if(window.cef && typeof cef.on==='function'){
     update(speed,fuel,engine,lights);
   });
   cef.on('showSpeedo', function(){ show(); });
+ cef.on('hideSpeedo', function(){ hide(); });
 }else{
   /* демо-режим: открыть файл в обычном браузере для проверки */
   var t=0;
