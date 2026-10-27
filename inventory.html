@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Инвентарь</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body {
+            background: transparent;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: none; /* Скрыто по умолчанию */
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Контейнер инвентаря */
+        .inventory-box {
+            width: 800px;
+            background: rgba(15, 20, 30, 0.85);
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 229, 255, 0.05);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Заголовок */
+        .header {
+            background: linear-gradient(90deg, #005c97, #363795);
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.3);
+        }
+        .header h2 {
+            color: #fff;
+            font-size: 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+        .header .weight {
+            color: #00e5ff;
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 0 0 5px #00e5ff;
+        }
+
+        /* Основная часть */
+        .main-content {
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        /* Сетка слотов */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            flex: 1;
+        }
+
+        .slot {
+            width: 100%;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .slot:hover {
+            background: rgba(0, 229, 255, 0.1);
+            border-color: rgba(0, 229, 255, 0.5);
+        }
+
+        .slot.active {
+            background: rgba(0, 229, 255, 0.2);
+            border-color: #00e5ff;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
+        }
+
+        .slot .icon {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        .slot .name {
+            color: #e0f7fa;
+            font-size: 12px;
+            text-align: center;
+            padding: 0 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        .slot .count {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 229, 255, 0.4);
+        }
+
+        /* Панель действий (справа) */
+        .action-panel {
+            width: 220px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .action-panel h3 {
+            color: #00e5ff;
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .action-panel .info {
+            color: #b0bec5;
+            font-size: 13px;
+            margin-bottom: 20px;
+            text-align: center;
+            min-height: 40px;
+        }
+
+        .btn {
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn-use { background: #00bcd4; color: #000; }
+        .btn-use:hover { background: #00e5ff; box-shadow: 0 0 10px #00e5ff; }
+
+        .btn-drop { background: #ff5252; color: #fff; }
+        .btn-drop:hover { background: #ff1744; box-shadow: 0 0 10px #ff1744; }
+
+        .btn-close { 
+            background: transparent; 
+            color: #b0bec5; 
+            border: 1px solid #b0bec5; 
+            margin-top: auto; 
+        }
+        .btn-close:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+        /* Закрыть крестиком */
+        .close-x {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            transition: 0.2s;
+            z-index: 100;
+        }
+        .close-x:hover { color: #ff5252; transform: scale(1.2); }
+
+    </style>
+</head>
+<body>
+    <div class="inventory-box">
+        <div class="header">
+            <h2>Инвентарь</h2>
+            <div class="weight">Вес: <span id="current-weight">0.0</span> / <span id="max-weight">50.0</span> кг</div>
+        </div>
+        
+        <div class="main-content">
+            <div class="grid-container" id="inventory-grid">
+                <!-- Слоты будут генерироваться через JS -->
+            </div>
+
+            <div class="action-panel">
+                <h3 id="selected-name">Предмет не выбран</h3>
+                <div class="info" id="selected-desc">Выберите слот для взаимодействия</div>
+                
+                <button class="btn btn-use" onclick="useItem()">Использовать</button>
+                <button class="btn btn-drop" onclick="dropItem()">Выбросить</button>
+                <button class="btn btn-close" onclick="closeInventory()">Закрыть (ESC)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let inventoryData = [];
+        let maxSlots = 20;
+        let selectedSlot = -1;
+
+        // Слушатель события из Pawn
+        cef.on("updateInventory", function(jsonData, maxW, currW) {
+            document.body.style.display = 'flex';
+            document.getElementById('current-weight').innerText = currW.toFixed(1);
+            document.getElementById('max-weight').innerText = maxW.toFixed(1);
+
+            // Парсим данные (формат: id, name, weight, count|id, name, weight, count)
+            inventoryData = [];
+            if (jsonData && jsonData !== "empty") {
+                const items = jsonData.split('|');
+                items.forEach(itemStr => {
+                    const parts = itemStr.split(',');
+                    if (parts.length >= 4) {
+                        inventoryData.push({
+                            slot: parseInt(parts[0]),
+                            name: parts[1],
+                            weight: parseFloat(parts[2]),
+                            count: parseInt(parts[3]),
+                            icon: parts[4] || '📦' // Иконка-эмодзи (если не передана - коробка)
+                        });
+                    }
+                });
+            }
+
+            renderGrid();
+        });
+
+        cef.on("closeInventory", function() {
+            closeInventory(false);
+        });
+
+        function renderGrid() {
+            const grid = document.getElementById('inventory-grid');
+            grid.innerHTML = '';
+            
+            for (let i = 0; i < maxSlots; i++) {
+                const slotDiv = document.createElement('div');
+                slotDiv.className = 'slot';
+                slotDiv.id = `slot-${i}`;
+                
+                // Ищем предмет в этом слоте
+                const item = inventoryData.find(x => x.slot === i);
+                
+                if (item) {
+                    slotDiv.innerHTML = `
+                        <div class="icon">${item.icon}</div>
+                        <div class="name">${item.name}</div>
+                        ${item.count > 1 ? `<div class="count">${item.count}</div>` : ''}
+                    `;
+                    slotDiv.onclick = () => selectSlot(i, item, slotDiv);
+                } else {
+                    slotDiv.onclick = () => selectSlot(i, null, slotDiv);
+                }
+                
+                grid.appendChild(slotDiv);
+            }
+        }
+
+        function selectSlot(index, item, element) {
+            // Снимаем выделение со всех
+            document.querySelectorAll('.slot').forEach(el => el.classList.remove('active'));
+            
+            if (!item) {
+                selectedSlot = -1;
+                document.getElementById('selected-name').innerText = "Пустой слот";
+                document.getElementById('selected-desc').innerText = "Выберите предмет";
+                return;
+            }
+
+            // Выделяем текущий
+            element.classList.add('active');
+            selectedSlot = index;
+            
+            document.getElementById('selected-name').innerText = item.name;
+            document.getElementById('selected-desc').innerText = `Вес: ${item.weight} кг | Кол-во: ${item.count}`;
+        }
+
+        function useItem() {
+            if (selectedSlot === -1) return;
+            cef.emit("inventoryAction", "use", selectedSlot);
+        }
+
+        function dropItem() {
+            if (selectedSlot === -1) return;
+            cef.emit("inventoryAction", "drop", selectedSlot);
+        }
+
+        function closeInventory(sendEvent = true) {
+            document.body.style.display = 'none';
+            if (sendEvent) {
+                cef.emit("inventoryAction", "close", -1);
+            }
+            selectedSlot = -1;
+        }
+
+        // Закрытие на ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeInventory();
+            }
+        });
+    </script>
+</body>
+</html>
